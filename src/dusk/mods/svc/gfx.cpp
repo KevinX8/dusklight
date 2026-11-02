@@ -195,6 +195,8 @@ GfxAttachmentSemantic gfx_attachment_semantic(aurora::gfx::ColorAttachmentSemant
     case aurora::gfx::ColorAttachmentSemantic::Normal:
         return GFX_ATTACHMENT_NORMAL;
     case aurora::gfx::ColorAttachmentSemantic::Auxiliary:
+    case aurora::gfx::ColorAttachmentSemantic::HdrGain:
+    case aurora::gfx::ColorAttachmentSemantic::HdrGlow:
         return GFX_ATTACHMENT_AUXILIARY;
     }
     return GFX_ATTACHMENT_AUXILIARY;
@@ -702,6 +704,8 @@ ModResult gfx_resolve_pass(LoadedMod& mod, const GfxResolveDesc& desc, GfxResolv
     out.colorTexture = resolved.colorTexture.Get();
     out.depthTexture = resolved.depthTexture.Get();
     out.normalTexture = resolved.normalTexture.Get();
+    out.hdr_gain = resolved.hdrGain.Get(); // truncated away for pre-1.5 struct sizes
+    out.hdr_glow = resolved.hdrGlow.Get();
     return MOD_OK;
 }
 
@@ -1386,13 +1390,16 @@ ModResult gfx_resolve_pass_impl(
     constexpr size_t v3DescSize = sizeof(GfxResolveDesc);
     constexpr size_t v0TargetsSize = offsetof(GfxResolvedTargets, normal);
     constexpr size_t v3TargetsSize = offsetof(GfxResolvedTargets, colorTexture);
-    constexpr size_t v4TargetsSize = sizeof(GfxResolvedTargets);
+    constexpr size_t v4TargetsSize = offsetof(GfxResolvedTargets, hdr_gain);
+    constexpr size_t v5TargetsSize = sizeof(GfxResolvedTargets);
     const size_t outputSize = outTargets != nullptr ? std::min<size_t>(outTargets->struct_size,
                                                           sizeof(GfxResolvedTargets)) :
                                                       0;
 
     GfxResolvedTargets resolved = GFX_RESOLVED_TARGETS_INIT;
-    if (outputSize == v0TargetsSize || outputSize == v3TargetsSize || outputSize >= v4TargetsSize) {
+    if (outputSize == v0TargetsSize || outputSize == v3TargetsSize || outputSize == v4TargetsSize ||
+        outputSize >= v5TargetsSize)
+    {
         resolved.struct_size = outputSize;
         std::memcpy(outTargets, &resolved, outputSize);
     } else {

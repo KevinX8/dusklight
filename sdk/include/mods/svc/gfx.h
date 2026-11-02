@@ -216,10 +216,17 @@ typedef struct GfxResolvedTargets {
     WGPUTexture colorTexture;
     WGPUTexture depthTexture;
     WGPUTexture normalTexture;
+    /* Minor version 5: live HDR side buffers (RGBA16Float, HDR output only, else NULL). Not
+     * snapshots: sample them only from a compute task pushed after this resolve, this frame.
+     * hdr_gain.rgb = per-pixel lighting gain (>= 1, set_hdr_frame unclip_lighting);
+     * hdr_glow.rgb = unsaturated sum of unlit additive draws, in the frame's gamma space. */
+    WGPUTextureView hdr_gain;
+    WGPUTextureView hdr_glow;
 } GfxResolvedTargets;
 
 #define GFX_RESOLVED_TARGETS_INIT                                                                  \
-    {sizeof(GfxResolvedTargets), NULL, NULL, WGPUTextureFormat_Undefined, 0u, 0u, NULL, NULL, NULL, NULL}
+    {sizeof(GfxResolvedTargets), NULL, NULL, WGPUTextureFormat_Undefined, 0u, 0u, NULL, NULL, NULL, NULL, NULL, \
+        NULL}
 
 /*
  * Passed to GfxComputeFn on the render worker thread; valid only during the call. The encoder is
