@@ -304,7 +304,9 @@ typedef enum GfxHdrMode {
 /*
  * Per-frame HDR state for the current frame only. scene_linear marks the frame as already scRGB
  * (1.0 = 80 nits); unclip_lighting lets lit surfaces go overbright (TEV keeps hardware clamps).
- * Ignored when HDR is off.
+ * scene_texture (optional, borrowed, 2D with TextureBinding usage) is presented instead of the
+ * game frame, e.g. a float texture holding a graded HDR frame: the game frame itself is 8-bit,
+ * like the GameCube EFB. Keep it alive until the frame is submitted. Ignored when HDR is off.
  */
 typedef struct GfxHdrFrameDesc {
     uint32_t struct_size;
@@ -312,9 +314,10 @@ typedef struct GfxHdrFrameDesc {
     bool unclip_lighting;
     float paper_white_nits;
     float peak_nits;
+    WGPUTexture scene_texture;
 } GfxHdrFrameDesc;
 
-#define GFX_HDR_FRAME_DESC_INIT {sizeof(GfxHdrFrameDesc), false, false, 200.0f, 1000.0f}
+#define GFX_HDR_FRAME_DESC_INIT {sizeof(GfxHdrFrameDesc), false, false, 200.0f, 1000.0f, NULL}
 
 typedef struct GfxService {
     ServiceHeader header;

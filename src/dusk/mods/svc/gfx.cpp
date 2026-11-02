@@ -1135,11 +1135,19 @@ ModResult gfx_set_hdr_frame(ModContext* context, const GfxHdrFrameDesc* desc) {
     {
         return MOD_INVALID_ARGUMENT;
     }
+    // The engine samples the override in its HDR encode and menu backdrop.
+    if (desc->scene_texture != nullptr &&
+        (wgpuTextureGetDimension(desc->scene_texture) != WGPUTextureDimension_2D ||
+            (wgpuTextureGetUsage(desc->scene_texture) & WGPUTextureUsage_TextureBinding) == 0))
+    {
+        return MOD_INVALID_ARGUMENT;
+    }
     const AuroraHdrFrame frame{
         .sceneLinear = desc->scene_linear,
         .unclipLighting = desc->unclip_lighting,
         .paperWhiteNits = desc->paper_white_nits,
         .peakNits = desc->peak_nits,
+        .sceneTexture = desc->scene_texture,
     };
     aurora_set_hdr_frame(&frame);
     return MOD_OK;
