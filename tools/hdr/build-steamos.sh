@@ -9,8 +9,9 @@ NAME=dusklight-u2404
 JOBS="${JOBS:-22}"
 
 cd "$(dirname "$0")/../.."
-describe="$(git describe --tags --long --dirty --match 'v*' 2>/dev/null || true)"
-APP_VERSION="$(printf '%s' "$describe" | sed -E 's/-[^-]+(-dirty|)$//; s/-0$//')-hdr"
+# Report the official release version: mods (e.g. ragdoll) check the host version number.
+TAG="$(git describe --tags --abbrev=0 --match 'v*')"
+APP_VERSION="${TAG}-hdr"
 
 if ! podman container exists "$NAME"; then
   podman run -d --name "$NAME" --network host -v "$ROOT:$ROOT" docker.io/library/ubuntu:24.04 sleep infinity
@@ -31,7 +32,7 @@ if ! podman container exists "$NAME"; then
 fi
 podman start "$NAME" >/dev/null
 
-podman exec -w "$ROOT" -e JOBS="$JOBS" -e APP_VERSION="$APP_VERSION" "$NAME" bash -ec '
+podman exec -w "$ROOT" -e JOBS="$JOBS" -e APP_VERSION="$APP_VERSION" -e TAG="$TAG" "$NAME" bash -ec '
   export PATH="$HOME/.cargo/bin:$PATH"
   dawn_pkg=build-dawn/dawn-linux-x86_64-u2404.tar.gz
   if [ ! -f "$dawn_pkg" ]; then
@@ -47,6 +48,7 @@ podman exec -w "$ROOT" -e JOBS="$JOBS" -e APP_VERSION="$APP_VERSION" "$NAME" bas
   cmake --preset x-linux-ci-gcc -B "'"$ROOT"'/steamos/build/x" \
     -DCMAKE_INSTALL_PREFIX="'"$ROOT"'/steamos/build/install" \
     -DCMAKE_C_COMPILER_LAUNCHER= -DCMAKE_CXX_COMPILER_LAUNCHER= \
+    -DBOREALIS_APP_DESCRIBE_OVERRIDE="$TAG" \
     -DAURORA_DAWN_PROVIDER=package \
     -DAURORA_DAWN_PACKAGE_URL="file://'"$ROOT"'/$dawn_pkg"
   cmake --build "'"$ROOT"'/steamos/build/x" --target install -j "$JOBS"
