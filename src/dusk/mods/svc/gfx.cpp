@@ -1138,7 +1138,6 @@ ModResult gfx_set_hdr_frame(ModContext* context, const GfxHdrFrameDesc* desc) {
     const AuroraHdrFrame frame{
         .sceneLinear = desc->scene_linear,
         .unclipLighting = desc->unclip_lighting,
-        .unclipTev = desc->unclip_tev,
         .paperWhiteNits = desc->paper_white_nits,
         .peakNits = desc->peak_nits,
     };

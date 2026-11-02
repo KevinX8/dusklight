@@ -1065,8 +1065,8 @@ compatibility mode or offscreen passes.
 
 **GfxService 1.5**: HDR output. `get_hdr_mode` reports the mode the engine runs in (fixed per run; falls back to
 `GFX_HDR_OFF` when the display cannot present the requested format). `set_hdr_frame` pushes per-frame HDR state for
-the current frame only: `scene_linear` marks the frame as already scRGB (1.0 = 80 nits), the unclip flags let lighting
-and TEV clamps go overbright, and the nits values override the engine's paper white and peak. It returns
+the current frame only: `scene_linear` marks the frame as already scRGB (1.0 = 80 nits), `unclip_lighting` lets lit
+surfaces go overbright (TEV keeps hardware clamps), and the nits values override the engine's paper white and peak. It returns
 `MOD_UNAVAILABLE` when HDR is off and `MOD_INVALID_ARGUMENT` for a bad description.
 
 Scene attachment changes alter `GfxDrawContext.layout.key`. Create scene pipelines from the draw callback's layout

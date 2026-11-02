@@ -303,18 +303,18 @@ typedef enum GfxHdrMode {
 
 /*
  * Per-frame HDR state for the current frame only. scene_linear marks the frame as already scRGB
- * (1.0 = 80 nits); unclip flags let lighting and TEV clamps go overbright. Ignored when HDR is off.
+ * (1.0 = 80 nits); unclip_lighting lets lit surfaces go overbright (TEV keeps hardware clamps).
+ * Ignored when HDR is off.
  */
 typedef struct GfxHdrFrameDesc {
     uint32_t struct_size;
     bool scene_linear;
     bool unclip_lighting;
-    bool unclip_tev;
     float paper_white_nits;
     float peak_nits;
 } GfxHdrFrameDesc;
 
-#define GFX_HDR_FRAME_DESC_INIT {sizeof(GfxHdrFrameDesc), false, false, false, 200.0f, 1000.0f}
+#define GFX_HDR_FRAME_DESC_INIT {sizeof(GfxHdrFrameDesc), false, false, 200.0f, 1000.0f}
 
 typedef struct GfxService {
     ServiceHeader header;
