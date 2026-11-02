@@ -22,6 +22,9 @@ UserSettings g_userSettings = {
         .lastWindowWidth {"video.lastWindowWidth", 0},
         .lastWindowHeight {"video.lastWindowHeight", 0},
         .uiScale {"video.uiScale", 100},
+        .hdrMode {"video.hdrMode", 0},
+        .hdrPaperWhiteNits {"video.hdrPaperWhiteNits", 200.f},
+        .hdrPeakNits {"video.hdrPeakNits", 1000.f},
     },
 
     .audio = {
@@ -262,6 +265,9 @@ void registerSettings() {
     Register(g_userSettings.video.lastWindowHeight);
     Register(g_userSettings.video.uiScale,
         [](const int&, const int&) { dusk::ui::apply_scale(); });
+    Register(g_userSettings.video.hdrMode);
+    Register(g_userSettings.video.hdrPaperWhiteNits);
+    Register(g_userSettings.video.hdrPeakNits);
 
     // Audio
     Register(g_userSettings.audio.outputMode);

@@ -243,6 +243,32 @@ Rml::String graphics_backend_display_name() {
     return Rml::String{backend_name(aurora_get_backend())};
 }
 
+AuroraHdrMode configured_hdr_mode() {
+    return static_cast<AuroraHdrMode>(getSettings().video.hdrMode.getValue());
+}
+
+bool is_hdr_mode_restart_pending() {
+    return getSettings().video.hdrMode.getValue() != prelaunch_state().initialHdrMode;
+}
+
+Rml::String hdr_mode_name(AuroraHdrMode mode) {
+    switch (mode) {
+    case AURORA_HDR_HDR10:
+        return Rml::String{"HDR10 (PQ)"};
+    case AURORA_HDR_SCRGB:
+        return Rml::String{"scRGB"};
+    default:
+        return Rml::String{"Off"};
+    }
+}
+
+Rml::String hdr_mode_display_name() {
+    if (is_hdr_mode_restart_pending()) {
+        return hdr_mode_name(configured_hdr_mode());
+    }
+    return hdr_mode_name(aurora_get_hdr_mode());
+}
+
 Rml::String configured_data_path_display_name() {
     const auto path = data::abbreviated_path_string(data::configured_data_path());
     if (path.empty()) {
@@ -636,6 +662,27 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                                 mDoAud_seStartMenu(kSoundItemChange);
                                 getSettings().backend.graphicsBackend.setValue(
                                     std::string{backend_id(backend)});
+                                config::save();
+                            });
+                    }
+                    pane.add_rml("<br/>Changes require a restart.");
+                });
+            leftPane.register_control(
+                leftPane.add_select_button({
+                    .key = "HDR Output",
+                    .getValue = [] { return hdr_mode_display_name(); },
+                    .isModified = [] { return is_hdr_mode_restart_pending(); },
+                }),
+                rightPane, [](Pane& pane) {
+                    for (const auto mode : {AURORA_HDR_OFF, AURORA_HDR_HDR10, AURORA_HDR_SCRGB}) {
+                        pane
+                            .add_button({
+                                .text = hdr_mode_name(mode),
+                                .isSelected = [mode] { return configured_hdr_mode() == mode; },
+                            })
+                            .on_pressed([mode] {
+                                mDoAud_seStartMenu(kSoundItemChange);
+                                getSettings().video.hdrMode.setValue(static_cast<int>(mode));
                                 config::save();
                             });
                     }

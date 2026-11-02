@@ -184,6 +184,9 @@ struct UserSettings {
         ConfigVar<int> lastWindowWidth;
         ConfigVar<int> lastWindowHeight;
         ConfigVar<int> uiScale;
+        ConfigVar<int> hdrMode;
+        ConfigVar<float> hdrPaperWhiteNits;
+        ConfigVar<float> hdrPeakNits;
     } video;
 
     struct {

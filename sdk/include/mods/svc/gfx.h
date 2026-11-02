@@ -33,7 +33,7 @@
 
 #define GFX_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "gfx"
 #define GFX_SERVICE_MAJOR 1u
-#define GFX_SERVICE_MINOR 4u
+#define GFX_SERVICE_MINOR 5u
 
 /* Maximum size for push_draw payload */
 #define GFX_INLINE_DRAW_PAYLOAD_SIZE 128u
@@ -291,6 +291,31 @@ typedef struct GfxPresentTargetDesc {
     {sizeof(GfxPresentTargetDesc), NULL, 0u, 0u, WGPUTextureUsage_None,                            \
         WGPUTextureFormat_Undefined, WGPUCompositeAlphaMode_Auto, NULL, NULL}
 
+/*
+ * HDR output mode the engine runs in. Fixed per run: changing it requires a restart. The mode
+ * falls back to GFX_HDR_OFF when the display cannot present the requested format.
+ */
+typedef enum GfxHdrMode {
+    GFX_HDR_OFF = 0,
+    GFX_HDR_HDR10 = 1,
+    GFX_HDR_SCRGB = 2,
+} GfxHdrMode;
+
+/*
+ * Per-frame HDR state for the current frame only. scene_linear marks the frame as already scRGB
+ * (1.0 = 80 nits); unclip flags let lighting and TEV clamps go overbright. Ignored when HDR is off.
+ */
+typedef struct GfxHdrFrameDesc {
+    uint32_t struct_size;
+    bool scene_linear;
+    bool unclip_lighting;
+    bool unclip_tev;
+    float paper_white_nits;
+    float peak_nits;
+} GfxHdrFrameDesc;
+
+#define GFX_HDR_FRAME_DESC_INIT {sizeof(GfxHdrFrameDesc), false, false, false, 200.0f, 1000.0f}
+
 typedef struct GfxService {
     ServiceHeader header;
 
@@ -346,6 +371,10 @@ typedef struct GfxService {
     /* Minor version 2 */
 
     ModResult (*get_scene_target_layout)(ModContext* ctx, GfxRenderTargetLayout* out_layout);
+
+    /* Minor version 5 */
+    ModResult (*get_hdr_mode)(ModContext* ctx, GfxHdrMode* out_mode);
+    ModResult (*set_hdr_frame)(ModContext* ctx, const GfxHdrFrameDesc* desc);
 } GfxService;
 
 MOD_DECLARE_SERVICE(GfxService, svc_gfx, GFX_SERVICE_ID, GFX_SERVICE_MAJOR, GFX_SERVICE_MINOR);
