@@ -2,7 +2,7 @@
 # Build a SteamOS-compatible HDR AppImage (glibc 2.39, like upstream CI's ubuntu-24.04 runner)
 # inside a rootless podman container. Dawn and dusklight use separate build dirs, so host
 # builds are untouched. Output: /media/ESSD/Dusklight/steamos/build/install/Dusklight-*.AppImage
-# Usage: tools/hdr/build-steamos.sh [user@host to scp the AppImage to ~/Applications/]
+# Usage: tools/hdr/build-steamos.sh [user@host [remote path, default Games/Dusklight-linux-x86_64.appimage]]
 
 ROOT=/media/ESSD/Dusklight
 NAME=dusklight-u2404
@@ -63,5 +63,5 @@ ls "$ROOT"/steamos/build/install/Dusklight-*.AppImage
 if [ -n "$1" ]; then
   # SSH_KEY: optional identity file, e.g. ~/.ssh/legion_go2
   scp ${SSH_KEY:+-o IdentitiesOnly=yes -i "$SSH_KEY"} \
-    "$ROOT"/steamos/build/install/Dusklight-*.AppImage "$1:~/Applications/"
+    "$ROOT"/steamos/build/install/Dusklight-*.AppImage "$1:${2:-Games/Dusklight-linux-x86_64.appimage}"
 fi
