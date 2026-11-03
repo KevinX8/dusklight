@@ -83,16 +83,18 @@ TEST(HdrMode, Backends) {
 
 **Files:**
 - Modify (Dawn patch): `src/dawn/native/d3d/SwapChainD3D.cpp` (after `CreateSwapChainForHwnd` and after `ResizeBuffers`: `IDXGISwapChain3::CheckColorSpaceSupport` then `SetColorSpace1` with `DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709` / `_G2084_NONE_P2020`), `src/dawn/native/d3d/PhysicalDeviceD3D.cpp` (`GetSurfaceCapabilities`: with color management, return only the matching format, and nothing unless the window's monitor reports `IDXGIOutput6::GetDesc1().ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020`).
-- Modify: `extern/aurora/cmake/AuroraDawnProvider.cmake` (vendor provider: `PATCH_COMMAND git apply --ignore-whitespace <each cmake/patches/dawn-*.patch>`), dusklight CI preset used for the HDR Windows build set to `AURORA_DAWN_PROVIDER=vendor`.
+- Modify: `extern/aurora/cmake/AuroraDawnProvider.cmake` (vendor provider: `PATCH_COMMAND git apply --ignore-whitespace <each cmake/patches/dawn-*.patch>`), and `auto` resolves to vendor whenever HDR patches are present (aurora 7dc9607: the prebuilt packages and system Dawn lack the patches and silently degrade HDR — CI's auto picked the stock package, every job failed on `Rec2100PQ`).
 
 **Interfaces:**
 - Consumes: Task 1 `GetColorManagement()`, Task 2 engine path.
 
 - [x] **Step 1:** Implement the DXGI color-space calls and the capabilities filter (aurora 75ffc7c; Dawn patch).
 - [x] **Step 2:** Vendor provider applies patches (needs `cmake -E env GIT_DIR=` — plain git apply anchors to an enclosing repo and silently skips all hunks in build trees); verified: fresh vendor fetch auto-patched, host suite 307/307.
-- [ ] **Step 3:** CI Windows build on the user's fork; user tests on the HDR Windows PC: D3D12 + scRGB, D3D12 + HDR10, Windows HDR toggle off → SDR + toast, window dragged to SDR monitor keeps presenting, vbao still renders. Commit.
+- [ ] **Step 3:** CI Windows build on the user's fork (run 41688603341, code: aurora 7dc9607); user tests on the HDR Windows PC: D3D12 + scRGB, D3D12 + HDR10, Windows HDR toggle off → SDR + toast, window dragged to SDR monitor keeps presenting, vbao still renders. Commit.
 
 ### Task 4: Metal (macOS + iOS) with EDR scaling
+
+Code done: Dawn patch (EDR layer, RGBA16Float-only caps), encode edrScale/edrPeak, EdrHeadroom.mm (aurora 7f512d8 + 53a370f edr namespace fix); host tests green (HdrEdr.ClampsToHeadroom, HdrMode.Hdr10OnMetalUsesScrgb, tint-valid encode). First Metal compile = CI run 41688603341 (macOS jobs, build-only: no Mac hardware).
 
 **Files:**
 - Modify (Dawn patch): `src/dawn/native/metal/SwapChainMTL.mm` (with SRGBLinear+Extended: `wantsExtendedDynamicRangeContent = YES`, `pixelFormat = MTLPixelFormatRGBA16Float`, `colorspace = kCGColorSpaceExtendedLinearSRGB`), Metal `GetSurfaceCapabilities` (only RGBA16Float, and only if the screen's potential EDR headroom > 1).
