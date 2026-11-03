@@ -313,14 +313,23 @@ jobs:
           pattern: dusklight-*
           path: dist
 
-      - name: Zip each platform
+      # Same asset shapes as the official TwilitRealm/dusklight releases: raw AppImage and
+      # apk, win/macos zips with the app/program at top level, ipa as Payload/Dusklight.app.
+      - name: Package official-style assets
         run: |
           cd dist
-          for a in dusklight-*; do
-            (cd "$a" && zip -qr "../../$a.zip" .)
-          done
+          VER="$GITHUB_REF_NAME"
+          cp dusklight-*-linux-gcc-x86_64/Dusklight-*.AppImage "../Dusklight-$VER-linux-x86_64.AppImage"
+          cp dusklight-*-linux-gcc-aarch64/Dusklight-*.AppImage "../Dusklight-$VER-linux-arm64.AppImage"
+          cp dusklight-*-android-arm64/app-*-release-unsigned.apk "../Dusklight-$VER-android-arm64.apk"
+          (cd dusklight-*-win32-msvc-x86_64 && zip -qr ../../"Dusklight-$VER-win32-x86_64.zip" . -x "sdk/*" "debug.*")
+          (cd dusklight-*-win32-msvc-arm64 && zip -qr ../../"Dusklight-$VER-win32-arm64.zip" . -x "sdk/*" "debug.*")
+          (cd dusklight-*-macos-appleclang-arm64 && zip -qry ../../"Dusklight-$VER-macos-arm64.zip" Dusklight.app)
+          (cd dusklight-*-macos-appleclang-x86_64 && zip -qry ../../"Dusklight-$VER-macos-x86_64.zip" Dusklight.app)
+          mkdir -p Payload && cp -r dusklight-*-ios-appleclang-arm64/Dusklight.app Payload/
+          zip -qry "../Dusklight-$VER-ios-arm64.ipa" Payload
 
       - name: Attach to release
         env:
           GH_TOKEN: ${{github.token}}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" Dusklight-* --verify-tag --generate-notes
