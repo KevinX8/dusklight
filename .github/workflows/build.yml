@@ -220,6 +220,19 @@ jobs:
         working-directory: platforms/android
         run: ./gradlew :app:assembleRelease --rerun-tasks
 
+      # Test-key signing (not the official release key) so the apk is directly installable;
+      # installing over an official build requires uninstalling it first (signature differs).
+      - name: Sign APK (test key)
+        env:
+          KS_B64: ${{secrets.ANDROID_TEST_KEYSTORE}}
+          KS_PASS: ${{secrets.ANDROID_TEST_KEY_PASSWORD}}
+        run: |
+          printf '%s' "$KS_B64" | base64 -d > test.keystore
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" sign --ks test.keystore \
+            --ks-pass env:KS_PASS --ks-key-alias dusklight-test \
+            platforms/android/app/build/outputs/apk/release/app-${{matrix.abi}}-release-unsigned.apk
+          rm test.keystore
+
       - name: Stage artifacts
         run: |
           mkdir -p upload/sdk
