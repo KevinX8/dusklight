@@ -118,3 +118,16 @@ Code done: Dawn patch (EDR layer, RGBA16Float-only caps), encode edrScale/edrPea
 
 - [x] **Step 1:** hdr-mod CI on KevinX8/dusklight-hdr-mod (mod-template matrix): 8 platforms green, `Combine bundles` produces one `hdr_mod.dusk` with all native libs + res/hdr.wgsl (run 41686350348; artifact kept at `/media/ESSD/Dusklight/artifacts/hdr_mod-9536d42-combined.dusk`).
 - [ ] **Step 2:** Install on each test device; confirm the grade activates (`HDR grade active` in the log). Commit.
+
+## CI cross-platform fix rounds (all pushed)
+
+| # | Platform(s) | Failure | Fix |
+|---|-------------|---------|-----|
+| 1 | all | `Rec2100PQ` not a member — `auto` provider resolved to stock prebuilt Dawn | provider: `auto` picks patched vendor whenever `cmake/patches/dawn-*.patch` exist (aurora 7dc9607) |
+| 2 | Linux | CMake generate: `dawncpp_module` has no import-graph scanner | `DAWN_SUPPORTS_CXX_MODULES OFF` (aurora 72fa1e2; gcc-13 CI probe true, ships no scanner) |
+| 3 | iOS/Android | protobuf.cmake: cross-compile needs host protoc | `DAWN_BUILD_PROTOBUF OFF` + `TINT_BUILD_IR_BINARY OFF` (aurora 4984656; tint IR falls back to spirv-cross serialization) |
+| 4 | Android | magic_enum: no matching `is_valid` for C enum `AuroraHdrMode` (NDK clang, unsigned-int underlying type) | `hdr::mode_name()` 3-value switch (aurora 2e3d6fa) |
+| 5 | Windows | LNK1189 65535-export limit on `webgpu_dawn.dll` | clear `WINDOWS_EXPORT_ALL_SYMBOLS` on that target — dusklight sets it globally, Dawn exports its C API via its own dllexport macros (aurora 2a8f509; shared linkage = official layout, mods link the import lib) |
+| 6 | iOS | `property 'maximumExtendedEDRContentHeadroom' not found on UIScreen` | `maximumExtendedEDRHeadroom` (Dawn patch capability), `currentExtendedEDRContentHeadroom.maximumEDRHeadroom` (EdrHeadroom.mm live) (aurora 3be1823) |
+
+State: Linux x86_64/aarch64 green, Android green (incl. apk signing pending verify in release job), Windows/Metal unproven (gate 41713820858 @ 4fdd5bc944). Release job: official-style 8 assets (AppImage×2 raw, win zip×2, mac zip×2, ipa Payload, signed apk) wired on tag push, auto-tag `v2.0.3-hdr.1` on green.
