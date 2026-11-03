@@ -44,6 +44,10 @@ podman exec -w "$ROOT" -e JOBS="$JOBS" -e APP_VERSION="$APP_VERSION" -e TAG="$TA
     tar -czf "$dawn_pkg" -C build-dawn/install-u2404 .
   fi
 
+  # FetchContent does not re-fetch a file:// URL whose content changed; drop the cached
+  # Dawn extraction so a rebuilt tarball is picked up.
+  rm -rf "$ROOT"/steamos/build/x/_deps/dawn_prebuilt*
+
   cd dusklight
   cmake --preset x-linux-ci-gcc -B "'"$ROOT"'/steamos/build/x" \
     -DCMAKE_INSTALL_PREFIX="'"$ROOT"'/steamos/build/install" \
