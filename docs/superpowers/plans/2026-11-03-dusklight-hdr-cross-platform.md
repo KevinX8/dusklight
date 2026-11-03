@@ -44,9 +44,9 @@
 **Interfaces:**
 - Produces: `wgpu::SurfaceColorManagement{colorSpace, toneMappingMode}` accepted in `wgpu::SurfaceDescriptor` chain; `wgpu::PredefinedColorSpace::Rec2100PQ`; `GetCapabilities` formats filtered per color space on Vulkan.
 
-- [ ] **Step 1:** Remove every `DAWN_VK_SWAPCHAIN_COLORSPACE` read; drive the same Vulkan logic from `GetColorManagement()`.
-- [ ] **Step 2:** Rebuild Dawn (`tools/hdr/build-dawn.sh`), regenerate the patch with `git -C build-dawn/src diff > extern/aurora/cmake/patches/dawn-hdr-colorspace.patch`, confirm `git apply --check` on a clean checkout of the ref.
-- [ ] **Step 3:** Commit (aurora: patch).
+- [x] **Step 1:** Remove every `DAWN_VK_SWAPCHAIN_COLORSPACE` read; drive the same Vulkan logic from `GetColorManagement()`.
+- [x] **Step 2:** Rebuild Dawn (`tools/hdr/build-dawn.sh`), regenerate the patch with `git -C build-dawn/src diff > extern/aurora/cmake/patches/dawn-hdr-colorspace.patch`, confirm `git apply --check` on a clean checkout of the ref.
+- [x] **Step 3:** Commit (aurora: patch).
 
 ### Task 2: Aurora requests HDR through the surface, not the environment
 
@@ -58,7 +58,7 @@
 - Consumes: Task 1 struct/enum.
 - Produces: `color_management`, `hdr_backend_supported` (both in `aurora::webgpu::hdr`).
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 ```cpp
 TEST(HdrMode, ColorManagement) {
@@ -76,8 +76,8 @@ TEST(HdrMode, Backends) {
 }
 ```
 (Delete `HdrMode.EnvNames`.)
-- [ ] **Step 2:** Run `hdr_tests` → fail. **Step 3:** Implement. **Step 4:** Suite green.
-- [ ] **Step 5:** Go 2 regression (Global Constraints) + log shows `EXTENDED_SRGB_LINEAR`. Commit (aurora, dusklight bump).
+- [ ] **Step 2:** Run `hdr_tests` → fail. **Step 3:** Implement. **Step 4:** Suite green (307/307).
+- [ ] **Step 5:** Go 2 regression (Global Constraints) + log shows `EXTENDED_SRGB_LINEAR`. Committed (aurora 07fdb85, dusklight 4712077def); deploy running, user visual check pending.
 
 ### Task 3: Windows D3D12
 
@@ -88,8 +88,8 @@ TEST(HdrMode, Backends) {
 **Interfaces:**
 - Consumes: Task 1 `GetColorManagement()`, Task 2 engine path.
 
-- [ ] **Step 1:** Implement the DXGI color-space calls and the capabilities filter.
-- [ ] **Step 2:** Vendor provider applies patches; verify locally with a Linux configure: patched file present under `build/*/_deps/dawn-src`.
+- [x] **Step 1:** Implement the DXGI color-space calls and the capabilities filter (aurora 75ffc7c; Dawn patch).
+- [x] **Step 2:** Vendor provider applies patches (needs `cmake -E env GIT_DIR=` — plain git apply anchors to an enclosing repo and silently skips all hunks in build trees); verified: fresh vendor fetch auto-patched, host suite 307/307.
 - [ ] **Step 3:** CI Windows build on the user's fork; user tests on the HDR Windows PC: D3D12 + scRGB, D3D12 + HDR10, Windows HDR toggle off → SDR + toast, window dragged to SDR monitor keeps presenting, vbao still renders. Commit.
 
 ### Task 4: Metal (macOS + iOS) with EDR scaling
@@ -100,8 +100,8 @@ TEST(HdrMode, Backends) {
 - Modify: `lib/webgpu/hdr.hpp` (`resolve_mode` takes the backend: HDR10 on Metal → SCRGB), `lib/webgpu/gpu.cpp` (`HdrEncodeUniformBlock` + encode WGSL: `edrScale`, `edrPeak`; for Metal output `min(o * edrScale, edrPeak)` with `edrScale = 80/paperWhite`, `edrPeak = headroom` queried each frame).
 - Test: `extern/aurora/tests/hdr_test.cpp`
 
-- [ ] **Step 1: Failing tests** — `HdrMode.Hdr10OnMetalUsesScrgb` (`resolve_mode(AURORA_HDR_HDR10, {RGBA16Float}, Metal) == AURORA_HDR_SCRGB`), `HdrEdr.ClampsToHeadroom` (pure `edr_output(o, paperWhite, headroom)`: paper white → 1.0, values above headroom clamp to it).
-- [ ] **Step 2–4:** fail → implement → green; encode WGSL validated with tint (extract as in `/tmp/opencode/hdr_encode.wgsl` flow).
+- [x] **Step 1: Failing tests** — `HdrMode.Hdr10OnMetalUsesScrgb` (`resolve_mode(AURORA_HDR_HDR10, {RGBA16Float}, Metal) == AURORA_HDR_SCRGB`), `HdrEdr.ClampsToHeadroom` (pure `edr_output(o, paperWhite, headroom)`: paper white → 1.0, values above headroom clamp to it).
+- [x] **Step 2–4:** fail → implement → green; encode WGSL validated with tint (extract as in `/tmp/opencode/hdr_encode.wgsl` flow).
 - [ ] **Step 5:** iOS build via GitHub macOS runner (`x-ios-ci`), sideload; user checks HDR on iPhone/iPad incl. brightness changes and Low Power Mode. macOS: build only (no test device). Commit.
 
 ### Task 5: Android
