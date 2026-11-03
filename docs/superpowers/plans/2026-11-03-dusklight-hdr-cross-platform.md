@@ -116,5 +116,5 @@ Code done: Dawn patch (EDR layer, RGBA16Float-only caps), encode edrScale/edrPea
 
 ### Task 6: Ship the mod for all platforms
 
-- [ ] **Step 1:** Push `hdr-mod` to a GitHub repo created from mod-template's CI workflow (user creates the repo); CI produces one `.dusk` with native libs for every platform.
+- [x] **Step 1:** hdr-mod CI on KevinX8/dusklight-hdr-mod (mod-template matrix): 8 platforms green, `Combine bundles` produces one `hdr_mod.dusk` with all native libs + res/hdr.wgsl (run 41686350348; artifact kept at `/media/ESSD/Dusklight/artifacts/hdr_mod-9536d42-combined.dusk`).
 - [ ] **Step 2:** Install on each test device; confirm the grade activates (`HDR grade active` in the log). Commit.
