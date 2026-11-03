@@ -46,7 +46,7 @@ podman exec -w "$ROOT" -e JOBS="$JOBS" -e APP_VERSION="$APP_VERSION" -e TAG="$TA
 
   # FetchContent does not re-fetch a file:// URL whose content changed; drop the cached
   # Dawn extraction so a rebuilt tarball is picked up.
-  rm -rf "'"$ROOT"'/steamos/build/x/_deps/dawn_prebuilt*
+  rm -rf "'"$ROOT"'/steamos/build/x/_deps/dawn_prebuilt*"
 
   cd dusklight
   cmake --preset x-linux-ci-gcc -B "'"$ROOT"'/steamos/build/x" \
