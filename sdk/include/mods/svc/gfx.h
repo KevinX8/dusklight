@@ -225,8 +225,8 @@ typedef struct GfxResolvedTargets {
 } GfxResolvedTargets;
 
 #define GFX_RESOLVED_TARGETS_INIT                                                                  \
-    {sizeof(GfxResolvedTargets), NULL, NULL, WGPUTextureFormat_Undefined, 0u, 0u, NULL, NULL, NULL, NULL, NULL, \
-        NULL}
+    {sizeof(GfxResolvedTargets), NULL, NULL, WGPUTextureFormat_Undefined, 0u, 0u, NULL, NULL,      \
+        NULL, NULL, NULL, NULL}
 
 /*
  * Passed to GfxComputeFn on the render worker thread; valid only during the call. The encoder is

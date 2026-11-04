@@ -10,3 +10,6 @@
 [submodule "mods/cosmetics"]
 	path = mods/cosmetics
 	url = https://github.com/TwilitRealm/dusklight-cosmetics
+[submodule "mods/hdr"]
+	path = mods/hdr
+	url = https://github.com/KevinX8/dusklight-hdr-mod.git

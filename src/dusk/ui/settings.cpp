@@ -674,7 +674,14 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                     .isModified = [] { return is_hdr_mode_restart_pending(); },
                 }),
                 rightPane, [](Pane& pane) {
-                    for (const auto mode : {AURORA_HDR_OFF, AURORA_HDR_HDR10, AURORA_HDR_SCRGB}) {
+#if defined(__APPLE__)
+                    // Metal presents HDR as scRGB (EDR) only.
+                    constexpr AuroraHdrMode modes[] = {AURORA_HDR_OFF, AURORA_HDR_SCRGB};
+#else
+                    constexpr AuroraHdrMode modes[] = {
+                        AURORA_HDR_OFF, AURORA_HDR_HDR10, AURORA_HDR_SCRGB};
+#endif
+                    for (const auto mode : modes) {
                         pane
                             .add_button({
                                 .text = hdr_mode_name(mode),

@@ -704,7 +704,7 @@ ModResult gfx_resolve_pass(LoadedMod& mod, const GfxResolveDesc& desc, GfxResolv
     out.colorTexture = resolved.colorTexture.Get();
     out.depthTexture = resolved.depthTexture.Get();
     out.normalTexture = resolved.normalTexture.Get();
-    out.hdr_gain = resolved.hdrGain.Get(); // truncated away for pre-1.5 struct sizes
+    out.hdr_gain = resolved.hdrGain.Get();  // truncated away for pre-1.5 struct sizes
     out.hdr_glow = resolved.hdrGlow.Get();
     return MOD_OK;
 }

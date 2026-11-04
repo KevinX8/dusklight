@@ -675,7 +675,8 @@ int game_main(int argc, char* argv[]) {
     // Set SDL metadata for audio mixers and macOS "About" menu
     SDL_SetAppMetadata("Dusklight", BOREALIS_APP_VERSION, "dev.twilitrealm.dusk");
 
-    const auto requestedHdrMode = static_cast<AuroraHdrMode>(dusk::getSettings().video.hdrMode.getValue());
+    const auto requestedHdrMode =
+        static_cast<AuroraHdrMode>(dusk::getSettings().video.hdrMode.getValue());
     {
         const auto userPathString = dusk::ConfigPath.u8string();
         const auto cachePathString = dusk::CachePath.u8string();
