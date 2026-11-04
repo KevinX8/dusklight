@@ -345,6 +345,6 @@ jobs:
       - name: Attach to release
         env:
           GH_TOKEN: ${{github.token}}
-        # no checkout in this job: --verify-tag/--generate-notes shell out to git and fail
-        # without .git; the trigger ref already is the tag.
-        run: gh release create "$GITHUB_REF_NAME" Dusklight-* --prerelease -t "$GITHUB_REF_NAME"
+        # no checkout in this job: gh infers the repo from git remotes, so pass --repo;
+        # --verify-tag/--generate-notes would also shell out to git.
+        run: gh release create "$GITHUB_REF_NAME" Dusklight-* --repo "$GITHUB_REPOSITORY" --prerelease -t "$GITHUB_REF_NAME"
