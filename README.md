@@ -12,7 +12,7 @@
 
 > [!WARNING]
 > This is an **unofficial fork** by KevinX8, not affiliated with TwilitRealm. Please report issues
-> [here](https://github.com/KevinX8/dusklight/issues), not to the upstream project. It was built with
+> [here](https://github.com/KevinX8/dusklight-hdr/issues), not to the upstream project. It was built with
 > AI assistance, so upstream does not accept it as a contribution.
 
 This fork adds **HDR output** to Dusklight: a Graphics > **HDR Output** setting (HDR10 or scRGB), an
@@ -36,7 +36,7 @@ Dusklight.
 ### Install
 
 1. Download the build for your platform from the
-   **[latest fork release](https://github.com/KevinX8/dusklight/releases/tag/v2.0.3-hdr.1)**.
+   **[latest fork release](https://github.com/KevinX8/dusklight-hdr/releases/latest)**.
    It installs the same way as the official build (see the
    [official installation guide](https://twilitrealm.dev/install/)), with two differences:
    - **Android**: the APK is signed with a test key, not the official one. Uninstall the official
