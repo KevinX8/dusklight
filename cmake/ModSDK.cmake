@@ -470,7 +470,7 @@ function(install_bundled_mods)
                 endforeach ()
                 install(CODE "
                     execute_process(
-                        COMMAND \"${SYMGEN_EXE}\" -L debug prepatch
+                        COMMAND \"${SYMGEN_EXE}\" prepatch
                             --binary \"${_prepatch_executable}\"
                             --report \"${CMAKE_BINARY_DIR}/prepatch-report-$<CONFIG>.json\"
                             ${_prepatch_mod_args}
@@ -503,7 +503,7 @@ function(install_bundled_mods)
                 endforeach ()
                 install(CODE "
                     execute_process(
-                        COMMAND \"${SYMGEN_EXE}\" -L debug prepatch
+                        COMMAND \"${SYMGEN_EXE}\" prepatch
                             --binary \"${_prepatch_executable}\"
                             --report \"${CMAKE_BINARY_DIR}/prepatch-report-$<CONFIG>.json\"
                             ${_prepatch_mod_args}
