@@ -148,23 +148,6 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{matrix.preset}}
 
-      # debug(ci), temporary: prepatch inputs for a local repro
-      - name: Prepatch report (on failure)
-        if: failure()
-        run: cat build/${{matrix.preset}}/prepatch-report-*.json || true
-      - name: Upload prepatch inputs (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: prepatch-inputs-${{matrix.artifact_name}}
-          path: |
-            build/install/Dusklight.app/Contents/MacOS/Dusklight
-            build/install/Dusklight.app/Dusklight
-            build/install/Dusklight.app/Contents/Resources/mods/*/lib/
-            build/install/Dusklight.app/Frameworks/*.so
-            build/${{matrix.preset}}/prepatch-report-*.json
-          if-no-files-found: warn
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
