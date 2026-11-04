@@ -58,6 +58,7 @@ struct PrelaunchState {
     GameLanguage unavailableLanguage = GameLanguage::English;
     bool pendingLanguageUnavailableNotice = false;
     std::string initialGraphicsBackend;
+    int initialHdrMode = 0;
     int initialCardFileType = 0;
     std::string errorString;
     std::string pendingDiscPath;

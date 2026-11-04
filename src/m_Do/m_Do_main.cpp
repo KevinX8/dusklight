@@ -675,6 +675,8 @@ int game_main(int argc, char* argv[]) {
     // Set SDL metadata for audio mixers and macOS "About" menu
     SDL_SetAppMetadata("Dusklight", BOREALIS_APP_VERSION, "dev.twilitrealm.dusk");
 
+    const auto requestedHdrMode =
+        static_cast<AuroraHdrMode>(dusk::getSettings().video.hdrMode.getValue());
     {
         const auto userPathString = dusk::ConfigPath.u8string();
         const auto cachePathString = dusk::CachePath.u8string();
@@ -710,7 +712,17 @@ int game_main(int argc, char* argv[]) {
         config.pauseOnFocusLost = dusk::getSettings().game.pauseOnFocusLost;
         config.imGuiInitCallback = &aurora_imgui_init_callback;
         config.allowTextureDumps = false;
+        config.hdrMode = requestedHdrMode;
+        config.hdrPaperWhiteNits = dusk::getSettings().video.hdrPaperWhiteNits.getValue();
+        config.hdrPeakNits = dusk::getSettings().video.hdrPeakNits.getValue();
         auroraInfo = aurora_initialize(argc, argv, &config);
+    }
+
+    if (requestedHdrMode != AURORA_HDR_OFF && requestedHdrMode != aurora_get_hdr_mode()) {
+        dusk::ui::push_toast({
+            .title = "HDR unavailable",
+            .content = "Display does not offer the HDR format; running in SDR.",
+        });
     }
 
     dusk::presentation::update_frame_rate_preference();

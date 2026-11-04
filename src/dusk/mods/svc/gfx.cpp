@@ -7,7 +7,9 @@
 #include "dusk/mods/loader/loader.hpp"
 #include "mods/svc/gfx.h"
 
+#include <aurora/aurora.h>
 #include <aurora/gfx.hpp>
+#include <aurora/hdr.hpp>
 #include <aurora/webgpu.hpp>
 #include <dolphin/gx/GXAurora.h>
 #include <fmt/format.h>
@@ -193,6 +195,8 @@ GfxAttachmentSemantic gfx_attachment_semantic(aurora::gfx::ColorAttachmentSemant
     case aurora::gfx::ColorAttachmentSemantic::Normal:
         return GFX_ATTACHMENT_NORMAL;
     case aurora::gfx::ColorAttachmentSemantic::Auxiliary:
+    case aurora::gfx::ColorAttachmentSemantic::HdrGain:
+    case aurora::gfx::ColorAttachmentSemantic::HdrGlow:
         return GFX_ATTACHMENT_AUXILIARY;
     }
     return GFX_ATTACHMENT_AUXILIARY;
@@ -700,6 +704,8 @@ ModResult gfx_resolve_pass(LoadedMod& mod, const GfxResolveDesc& desc, GfxResolv
     out.colorTexture = resolved.colorTexture.Get();
     out.depthTexture = resolved.depthTexture.Get();
     out.normalTexture = resolved.normalTexture.Get();
+    out.hdr_gain = resolved.hdrGain.Get();  // truncated away for pre-1.5 struct sizes
+    out.hdr_glow = resolved.hdrGlow.Get();
     return MOD_OK;
 }
 
@@ -1111,6 +1117,46 @@ ModResult gfx_get_scene_target_layout(ModContext* context, GfxRenderTargetLayout
     return MOD_OK;
 }
 
+ModResult gfx_get_hdr_mode(ModContext* context, GfxHdrMode* outMode) {
+    if (outMode == nullptr || mod_from_context(context) == nullptr) {
+        return MOD_INVALID_ARGUMENT;
+    }
+    *outMode = static_cast<GfxHdrMode>(aurora_get_hdr_mode());
+    return MOD_OK;
+}
+
+ModResult gfx_set_hdr_frame(ModContext* context, const GfxHdrFrameDesc* desc) {
+    if (desc == nullptr || desc->struct_size < sizeof(GfxHdrFrameDesc) ||
+        mod_from_context(context) == nullptr)
+    {
+        return MOD_INVALID_ARGUMENT;
+    }
+    if (aurora_get_hdr_mode() == AURORA_HDR_OFF) {
+        return MOD_UNAVAILABLE;
+    }
+    if (!aurora::webgpu::hdr::validate_hdr_frame(
+            desc->struct_size, sizeof(GfxHdrFrameDesc), desc->paper_white_nits, desc->peak_nits))
+    {
+        return MOD_INVALID_ARGUMENT;
+    }
+    // The engine samples the override in its HDR encode and menu backdrop.
+    if (desc->scene_texture != nullptr &&
+        (wgpuTextureGetDimension(desc->scene_texture) != WGPUTextureDimension_2D ||
+            (wgpuTextureGetUsage(desc->scene_texture) & WGPUTextureUsage_TextureBinding) == 0))
+    {
+        return MOD_INVALID_ARGUMENT;
+    }
+    const AuroraHdrFrame frame{
+        .sceneLinear = desc->scene_linear,
+        .unclipLighting = desc->unclip_lighting,
+        .paperWhiteNits = desc->paper_white_nits,
+        .peakNits = desc->peak_nits,
+        .sceneTexture = desc->scene_texture,
+    };
+    aurora_set_hdr_frame(&frame);
+    return MOD_OK;
+}
+
 void* gfx_get_proc_address(ModContext* context, const char* name) {
     if (mod_from_context(context) == nullptr || name == nullptr) {
         return nullptr;
@@ -1344,13 +1390,16 @@ ModResult gfx_resolve_pass_impl(
     constexpr size_t v3DescSize = sizeof(GfxResolveDesc);
     constexpr size_t v0TargetsSize = offsetof(GfxResolvedTargets, normal);
     constexpr size_t v3TargetsSize = offsetof(GfxResolvedTargets, colorTexture);
-    constexpr size_t v4TargetsSize = sizeof(GfxResolvedTargets);
+    constexpr size_t v4TargetsSize = offsetof(GfxResolvedTargets, hdr_gain);
+    constexpr size_t v5TargetsSize = sizeof(GfxResolvedTargets);
     const size_t outputSize = outTargets != nullptr ? std::min<size_t>(outTargets->struct_size,
                                                           sizeof(GfxResolvedTargets)) :
                                                       0;
 
     GfxResolvedTargets resolved = GFX_RESOLVED_TARGETS_INIT;
-    if (outputSize == v0TargetsSize || outputSize == v3TargetsSize || outputSize >= v4TargetsSize) {
+    if (outputSize == v0TargetsSize || outputSize == v3TargetsSize || outputSize == v4TargetsSize ||
+        outputSize >= v5TargetsSize)
+    {
         resolved.struct_size = outputSize;
         std::memcpy(outTargets, &resolved, outputSize);
     } else {
@@ -1455,6 +1504,8 @@ constexpr GfxService s_gfxService{
     .unregister_present_target = gfx_unregister_present_target_impl,
     .push_present = gfx_push_present_impl,
     .get_scene_target_layout = gfx_get_scene_target_layout,
+    .get_hdr_mode = gfx_get_hdr_mode,
+    .set_hdr_frame = gfx_set_hdr_frame,
 };
 
 }  // namespace
