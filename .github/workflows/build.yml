@@ -329,6 +329,14 @@ jobs:
           pattern: dusklight-*
           path: dist
 
+      # Artifact zips drop Unix modes: restore +x on the app bundles' Mach-O files
+      # (macOS refuses to launch Contents/MacOS/Dusklight without it).
+      - name: Restore executable bits
+        run: |
+          find dist -path '*/Dusklight.app/*' -type f -print0 | xargs -0 file |
+            grep 'Mach-O' | cut -d: -f1 | xargs -r chmod 755
+          test -x dist/dusklight-*-macos-appleclang-arm64/Dusklight.app/Contents/MacOS/Dusklight
+
       # Same asset shapes as the official TwilitRealm/dusklight releases: raw AppImage and
       # apk, win/macos zips with the app/program at top level, ipa as Payload/Dusklight.app.
       - name: Package official-style assets
